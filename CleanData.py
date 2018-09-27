@@ -3,29 +3,36 @@ import numpy as np
 from numpy.random import choice
 
 
-laender = ["Deutschland", "Frankreich", "Großbritanien", "USA", "China"]
-branchen = ["Lebensmittel", "Industrie", "Bauwesen", "Energie"]
-businesses = ["B2B", "B2C"]
+laender = range(5)
+laenderschluessel = ["" for x in range(len(laender))]
+laenderschluessel[0] = "Deutschland"
+laenderschluessel[1] = "Frankreich"
+laenderschluessel[2] = "Großbritanien"
+laenderschluessel[3] = "USA"
+laenderschluessel[4] = "China"
 
-branchendistproland = {}
-branchendistproland[laender[0]] = [0.1, 0.6, 0.2, 0.1]
-branchendistproland[laender[1]] = [0.1, 0.4, 0.4, 0.1]
-branchendistproland[laender[2]] = [0.3, 0.3, 0.2, 0.2]
-branchendistproland[laender[3]] = [0.3, 0.25, 0.25, 0.2]
-branchendistproland[laender[4]] = [0.0, 0.1, 0.5, 0.4]
+laenderdist = [0.4, 0.07, 0.03, 0.2, 0.3]
 
-businessdistprobranche = {}
-businessdistprobranche[branchen[0]] = [0.0, 1.0]
-businessdistprobranche[branchen[1]] = [0.4, 0.6]
-businessdistprobranche[branchen[2]] = [0.35, 0.65]
-businessdistprobranche[branchen[3]] = [0.3, 0.7]
+branchen = range(3)
+branchenschluessel = ["" for x in range(len(branchen))]
+branchenschluessel[0] = "Industrie"
+branchenschluessel[1] = "Bauwesen"
+branchenschluessel[2] = "Energie"
 
-def cleanData(my_data):
+branchendistproland = [[0 for x in range(3)] for y in range(5)]
+branchendistproland[0] = [0.6, 0.2, 0.2]
+branchendistproland[1] = [0.15, 0.15, 0.7]
+branchendistproland[2] = [0.5, 0.25, 0.25]
+branchendistproland[3] = [0.55, 0.2, 0.25]
+branchendistproland[4] = [0.45, 0.1, 0.45]
+
+
+def clean_data(my_data):
     with open(my_data, 'r') as file:
         reader = csv.reader(file, delimiter=',')
         row_count = sum(1 for x in reader)
 
-        laenderdistribution = choice(laender, row_count, p=[0.4, 0.07, 0.03, 0.2, 0.3])
+        laenderdistribution = choice(laender, row_count, p=laenderdist)
 
         pairs = []
 
@@ -39,19 +46,35 @@ def cleanData(my_data):
             row[1] = row[1].strip()
             row[2] = laenderdistribution[i]
 
-            branche = choice(branchen, 1, branchendistproland[laenderdistribution[i]])
-            business = choice(businesses, 1, businessdistprobranche[branche[0]])
-            pair = [branche[0], business[0]]
+            branche = choice(branchen, 1, p=branchendistproland[laenderdistribution[i]])
+            pair = [laenderdistribution[i], branche[0]]
             pairs.append(pair)
  #          newRow = np.array([row, branchendistribution[i], businessdistribution[i]])
             i = i + 1
+        return pairs
 
-        print(pairs)
-        save = np.array(pairs)
-        np.savetxt('C:/Users/David/Downloads/test.txt', pairs, delimiter=',', fmt="%s")
+def check_distribution(pairs):
 
+    counts = [[0 for x in range(3)] for y in range(5)]
 
-cleanData('C:/Users/David/Downloads/company_data.csv')
+    for pair in pairs:
+        counts[pair[0]][pair[1]] = counts[pair[0]][pair[1]] + 1
+
+    for i in range(len(counts)):
+        print("Info für %s" % laenderschluessel[i])
+        landsumme = sum(counts[i])
+        print("Landessumme: ", landsumme, "| Anteil: ", round(landsumme / len(pairs), 3), " | Plan: ", laenderdist[i])
+        print("Branchen:")
+        for j in range(len(counts[i])):
+            print("\t", branchenschluessel[j], ": ", counts[i][j], " | Anteil: ", round(counts[i][j] / landsumme, 3)
+                  , " | Plan: ", branchendistproland[i][j])
+        print()
+
+pairs = clean_data('C:/Users/David/Downloads/company_data.csv')
+check_distribution(pairs)
+
+# save = np.array(pairs)
+# np.savetxt('C:/Users/David/Downloads/test.txt', pairs, delimiter=',', fmt="%s")
 
 # Numpy add column to 2-dim array:
 # x = np.array([[10,20,30], [40,50,60]])
