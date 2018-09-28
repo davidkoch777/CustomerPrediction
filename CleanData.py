@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+# noinspection PyUnresolvedReferences
 from numpy.random import choice, randint
 
 
@@ -12,6 +13,7 @@ laenderschluessel[3] = "USA"
 laenderschluessel[4] = "China"
 
 laenderdist = [0.4, 0.07, 0.03, 0.2, 0.3]
+customerdist = [0.3, 0.7] # 1st number: amount of non-customers, 2nd number: amount of customers
 
 branchen = range(3)
 branchenschluessel = ["" for x in range(len(branchen))]
@@ -38,12 +40,14 @@ def clean_data(my_data):
         row_count = sum(1 for x in reader)
 
         laenderdistribution = choice(laender, row_count, p=laenderdist)
+        is_customer_distribution = choice(range(2), row_count, p=customerdist)
 
-        dataset = []
+        dataset = [["ID", "Land_ID", "Branche_ID", "Mitarbeiteranzahl", "Umsatz", "Wachstum", "IstKunde"]]
 
         i = 0
         file.seek(0)
         for row in reader:
+
             # URL aus dem Namen schneiden
             # pos1 = row[1].index('(')
             # pos2 = row[1].index(')')
@@ -70,11 +74,15 @@ def clean_data(my_data):
                 growth = round(growth / 10, 2)
             row[5] = growth
 
-            i = i + 1
+            is_customer = is_customer_distribution[i]
+            row.append(is_customer)
 
+            i = i + 1
             dataset.append(row)
+
 #        save = np.array(dataset)
-        np.savetxt('C:/Users/David/Downloads/dataset.txt', dataset, delimiter=',', fmt="%s")
+        # noinspection PyTypeChecker
+        np.savetxt('C:/Users/dakoch/Downloads/customer_dataset.csv', dataset, delimiter=',', fmt="%s")
 
 
 def check_distribution(pairs):
@@ -94,7 +102,8 @@ def check_distribution(pairs):
                   , " | Plan: ", branchendistproland[i][j])
         print()
 
-clean_data('C:/Users/David/Downloads/company_data.csv')
+
+clean_data('company_data.csv')
 
 # Numpy add column to 2-dim array:
 # x = np.array([[10,20,30], [40,50,60]])
