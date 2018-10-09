@@ -29,8 +29,8 @@ branchendistproland[3] = [0.55, 0.2, 0.25]
 branchendistproland[4] = [0.45, 0.1, 0.45]
 
 mitarbeiterrangeprobranche = [[0 for x in range(2)] for y in range(len(branchen))]
-mitarbeiterrangeprobranche[0] = [1000, 20000]
-mitarbeiterrangeprobranche[1] = [100, 2000]
+mitarbeiterrangeprobranche[0] = [500, 7000]
+mitarbeiterrangeprobranche[1] = [100, 3000]
 mitarbeiterrangeprobranche[2] = [250, 5000]
 
 
@@ -67,6 +67,12 @@ def clean_data(my_data):
             row[2] = branche[0]
             row[3] = mitarbeiteranzahl
 
+            revenue = float(row[4])
+            while((revenue / 100000000.0) > 1.0):
+                revenue = revenue / 10.0
+
+            row[4] = revenue
+
             growth = float(row[5].replace("%", ""))
             if(growth >= 1000.0):
                 growth = round(growth / 100, 2)
@@ -82,7 +88,7 @@ def clean_data(my_data):
 
 #        save = np.array(dataset)
         # noinspection PyTypeChecker
-        np.savetxt('C:/Users/dakoch/Downloads/customer_dataset.csv', dataset, delimiter=',', fmt="%s")
+        np.savetxt('C:/Users/dakoch/Downloads/customer_dataset_2.csv', dataset, delimiter=',', fmt="%s")
 
 
 def check_distribution(pairs):
