@@ -1,0 +1,108 @@
+# Import libraries necessary for this project
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+import pickle
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.externals import joblib
+
+def get_preprocessor():
+    numeric_features = ["Mitarbeiteranzahl", "Umsatz", "Wachstum"]
+    numeric_transformer = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler())])
+
+    categorical_features = ["Land_ID", "Branche_ID"]
+    categorical_transformer = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="constant")),
+        ("onehot", OneHotEncoder(handle_unknown="ignore"))])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_transformer, numeric_features),
+            ("cat", categorical_transformer, categorical_features)])
+
+    return preprocessor
+
+
+def run_classification_model(data, *data2, classifier_type):
+
+    if(classifier_type == "neuralnetwork"):
+        classifier = MLPClassifier(hidden_layer_sizes=(5,), random_state=42)
+
+    if(classifier_type == "naivebayes"):
+        classifier = GaussianNB()
+
+    if(classifier_type == "gauss"):
+        classifier = GaussianProcessClassifier(n_restarts_optimizer=10)
+
+    if(classifier_type == "neighbors"):
+        classifier = KNeighborsClassifier()
+
+    if(classifier_type == "logistic"):
+        classifier = LogisticRegression(solver="lbfgs")
+
+    if(classifier_type == "randomforest"):
+        classifier = RandomForestClassifier(n_estimators=100)
+
+    preprocessor = get_preprocessor()
+    clf = Pipeline(steps=[("preprocessor", preprocessor),
+                         ("classifier", classifier)])
+
+    y = data["IstKunde"]
+    X = data.drop(["IstKunde"], axis=1)
+
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+    if(classifier_type == "randomforest"):
+        y = y.values.ravel()
+
+    trained_model = clf.fit(X, y)
+
+ #   joblib.dump(trained_model, "customer_prediction.joblib")
+    return pickle.dumps(trained_model)
+
+
+def run_customer_prediction(potential_data, model):
+    customer_classification_model = pickle.loads(model)
+
+    # Generate our predictions for the test set.
+    predictions = customer_classification_model.predict(potential_data)
+    probability = customer_classification_model.predict_proba(potential_data)
+    # print(probability)
+
+    predictions_df = pd.DataFrame(predictions, columns=["WirdKunde"])
+    probability_max = [0] * len(predictions)
+    for i in range(len(predictions)):
+        probability_max[i] = probability[i][predictions[i]]
+
+    print(len(probability_max))
+#    probabilities_df = pd.DataFrame(data=np.float_(probability_max), columns=["Wahrscheinlichkeit"])
+    OutputDataSet = pd.concat([potential_data, predictions_df, pd.DataFrame(probability)], axis=1)
+    print(OutputDataSet)
+
+
+data = pd.read_csv("C:/Users/dakoch/Downloads/CustomerClustering/customer_cluster_kmeans.csv", float_precision='round_trip')
+data.drop(["ID"], axis=1, inplace=True)
+print("Customers dataset has {} samples with {} features each.".format(*data.shape))
+
+# Display a description of the dataset
+# stats = data.describe()
+# display(stats)
+# print("Information about the values in the clusters (IstKunde):")
+# print(data.groupby(["IstKunde", "Land_ID", "Branche_ID"]).count())
+
+potential_data = pd.read_csv("C:/Users/dakoch/Downloads/CustomerClustering/potential_customers.csv", float_precision='round_trip')
+
+model = run_classification_model(data, classifier_type="randomforest")
+
+run_customer_prediction(potential_data, model)

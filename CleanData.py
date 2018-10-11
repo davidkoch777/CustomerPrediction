@@ -1,14 +1,16 @@
 import csv
 import numpy as np
+import pandas as pd
 # noinspection PyUnresolvedReferences
 from numpy.random import choice, randint
 
+headline = ["ID", "Land_ID", "Branche_ID", "Mitarbeiteranzahl", "Umsatz", "Wachstum", "IstKunde"]
 
 laender = range(5)
 laenderschluessel = ["" for x in range(len(laender))]
 laenderschluessel[0] = "Deutschland"
 laenderschluessel[1] = "Frankreich"
-laenderschluessel[2] = "Großbritanien"
+laenderschluessel[2] = "Grossbritanien"
 laenderschluessel[3] = "USA"
 laenderschluessel[4] = "China"
 
@@ -42,7 +44,7 @@ def clean_data(my_data):
         laenderdistribution = choice(laender, row_count, p=laenderdist)
         is_customer_distribution = choice(range(2), row_count, p=customerdist)
 
-        dataset = [["ID", "Land_ID", "Branche_ID", "Mitarbeiteranzahl", "Umsatz", "Wachstum", "IstKunde"]]
+        dataset = [headline]
 
         i = 0
         file.seek(0)
@@ -109,7 +111,37 @@ def check_distribution(pairs):
         print()
 
 
-clean_data('company_data.csv')
+def write_back_categories(filesource, filedestination):
+    with open(filesource, 'r') as infile:
+            reader = csv.reader(infile, delimiter=',')
+            dataset = [next(infile).split(',')]
+            for row in reader:
+                row[1] = '\"' + laenderschluessel[int(row[1])] + '\"'
+                row[2] = '\"' + branchenschluessel[int(row[2])] + '\"'
+                dataset.append(row)
+
+    np.savetxt(filedestination, dataset, delimiter=',', fmt="%s")
+
+
+def generate_customer_data(filedestination, amount):
+    dataset = [headline[:-1]]
+
+    for i in range(amount):
+        land_id = randint(0, high=5)
+        branche_id = randint(0, high=3)
+        mitarbeiteiteranzahl = randint(mitarbeiterrangeprobranche[branche_id][0], high=mitarbeiterrangeprobranche[branche_id][1]+1)
+        umsatz = randint(1, 16) * 1000000.00
+        wachstum = round(randint(100,900) / 10, 2)
+
+        row = [i, land_id, branche_id, mitarbeiteiteranzahl, umsatz, wachstum]
+        dataset.append(row)
+
+    np.savetxt(filedestination, dataset, delimiter=',', fmt="%s")
+
+
+generate_customer_data("C:/Users/dakoch/Downloads/CustomerClustering/potential_customers.csv", 100)
+# clean_data('company_data.csv')
+# write_back_categories("C:/Users/dakoch/Downloads/customer_dataset.csv", "C:/Users/dakoch/Downloads/customer_dataset_strings.csv")
 
 # Numpy add column to 2-dim array:
 # x = np.array([[10,20,30], [40,50,60]])

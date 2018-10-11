@@ -119,8 +119,9 @@ def compare_clustering(data, storetofile):
     f3 = sns.pairplot(data_gaussian, vars=('Land_ID', 'Branche_ID', 'Mitarbeiteranzahl', 'Umsatz', 'Wachstum'), hue="IstKunde")
     f3.fig.canvas.set_window_title('Gaussian-Mixture-Clustering Scattermatrix')
 
+#    pca = Pipeline(steps=[('preprocessor', preprocessor), ('pca', PCA(n_components=2))])
     pca = PCA(n_components=2)
-    arr_2d = pca.fit(X).transform(X)
+    arr_2d = pca.fit_transform(X)
     plt.figure(figsize=(15,8))
     colors = ['red', 'navy']
     target_names = ['KeinKunde', 'IstKunde']
@@ -157,11 +158,11 @@ def compare_clustering(data, storetofile):
 
     plt.show()
 
-
+ #
 # Load the wholesale customers dataset
 try:
-#    data = pd.read_csv("C:/Users/dakoch/Downloads/customer_dataset.csv", float_precision='round_trip')
-    data = pd.read_csv("C:/Users/dakoch/Downloads/CustomerClustering/customer_cluster_kmeans.csv", float_precision='round_trip')
+#    data = pd.read_csv("C:/Users/dakoch/Downloads/customer_dataset.csv", float_precision='round_trip', dtype={'Land_ID':str, 'Branche_ID':str})
+    data = pd.read_csv("C:/Users/dakoch/Downloads/CustomerClustering/customer_dataset.csv", float_precision='round_trip')
     data.drop(["ID"], axis=1, inplace=True)
     print("Customers dataset has {} samples with {} features each.".format(*data.shape))
 except:
@@ -172,13 +173,15 @@ stats = data.describe()
 display(stats)
 # print("Information about the values in the clusters (IstKunde):")
 # print(data.groupby(['IstKunde', 'Land_ID', 'Branche_ID']).count())
-#compare_clustering(data, storetofile=0)
-run_classification_model(data, classifier_type='randomforest')
-run_classification_model(data, classifier_type='logistic')
-run_classification_model(data, classifier_type='decisiontree')
-run_classification_model(data, classifier_type='neighbors')
-run_classification_model(data, classifier_type='gauss')
-run_classification_model(data, classifier_type='naivebayes')
-run_classification_model(data, classifier_type='neuralnetwork')
 
-plot_clustering_by_features(data)
+compare_clustering(data, storetofile=0)
+
+# run_classification_model(data, classifier_type='randomforest')
+# run_classification_model(data, classifier_type='logistic')
+# run_classification_model(data, classifier_type='decisiontree')
+# run_classification_model(data, classifier_type='neighbors')
+# run_classification_model(data, classifier_type='gauss')
+# run_classification_model(data, classifier_type='naivebayes')
+# run_classification_model(data, classifier_type='neuralnetwork')
+
+#plot_clustering_by_features(data)
